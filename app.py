@@ -56,11 +56,20 @@ def home():
     coupons = list_coupons()
     table_rows = ""
     for c in coupons:
-        code, c_type, discount, stars_count, min_stars, owner, inviter, invited, status, created, expires, used = c 
+        (code, c_type, discount, stars_count, min_stars,
+         owner_id, owner_username,
+         inviter_id, inviter_username,
+         invited_id, invited_username,
+         status, created, expires, used) = c 
         
         created_fmt = datetime.fromisoformat(created).strftime("%Y-%m-%d %H:%M:%S") if created else "-"
         expires_fmt = datetime.fromisoformat(expires).strftime("%Y-%m-%d %H:%M:%S") if expires else "-"
         used_fmt = datetime.fromisoformat(used).strftime("%Y-%m-%d %H:%M:%S") if used else "-"
+        
+        # Форматируем отображаемые имена
+        owner_display = owner_username or owner_id or '-'
+        inviter_display = inviter_username or inviter_id or '-'
+        invited_display = invited_username or invited_id or '-'
         
         color = "#2a3440" if status == "active" else "#1f2833" if status == "used" else "#502828" if status == "expired" else "#2a3440"
         
@@ -69,9 +78,9 @@ def home():
             <td>{code}</td>
             <td>{c_type}</td>
             <td>{discount}%</td>
-            <td>{owner or '-'}</td>
-            <td>{inviter or '-'}</td>
-            <td>{invited or '-'}</td>
+            <td>{owner_display}</td>
+            <td>{inviter_display}</td>
+            <td>{invited_display}</td>
             <td>{status}</td>
             <td>{created_fmt}</td>
             <td>{expires_fmt}</td>
@@ -348,4 +357,5 @@ def purchase_form(buyer_id: str = Form(...), coupon: str = Form(None)):
 
 @app.delete("/coupon/{code}")
 def delete_coupon_endpoint(code: str) -> Dict[str, Any]:
+
     return delete_coupon(code)
