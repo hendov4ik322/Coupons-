@@ -253,11 +253,20 @@ def list_coupons():
     cur = conn.cursor()
     cur.execute("""
         SELECT 
-            code, coupon_type, discount_percent, stars_count, min_stars,
-            owner_tg_id, inviter_tg_id, invited_tg_id, status,
-            created_at, expires_at, used_at
-        FROM coupons
-        ORDER BY created_at DESC
+            c.code, c.coupon_type, c.discount_percent, c.stars_count, c.min_stars,
+            c.owner_tg_id,
+            u_owner.tg_username as owner_username,
+            c.inviter_tg_id,
+            u_inviter.tg_username as inviter_username,
+            c.invited_tg_id,
+            u_invited.tg_username as invited_username,
+            c.status,
+            c.created_at, c.expires_at, c.used_at
+        FROM coupons c
+        LEFT JOIN users u_owner ON c.owner_tg_id = u_owner.tg_id
+        LEFT JOIN users u_inviter ON c.inviter_tg_id = u_inviter.tg_id
+        LEFT JOIN users u_invited ON c.invited_tg_id = u_invited.tg_id
+        ORDER BY c.created_at DESC
     """)
     rows = cur.fetchall()
     conn.close()
@@ -270,4 +279,5 @@ def delete_coupon(code: str) -> Dict[str, Any]:
     deleted = cur.rowcount > 0
     conn.commit()
     conn.close()
+
     return {'ok': deleted, 'message': 'Coupon deleted' if deleted else 'Coupon not found'}
